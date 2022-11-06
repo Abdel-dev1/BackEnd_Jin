@@ -14,6 +14,9 @@ const passportStrategy = require('./utils/passportStrategy') ;
 const authRoutes = require('./routes/authRoutes');
 const blogRoutes = require('./routes/blogRoutes') ;
 const userRoutes = require('./routes/userRoutes') ;
+const scrapRoutes=require('./routes/scrapRoutes');
+const redditRoutes=require('./routes/redditRoutes');
+const twitterRoutes=require('./routes/twitterRouters')
 
 const globalErrHandler = require('./controllers/errorController');
 const AppError = require('./utils/appError');
@@ -44,6 +47,9 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRoutes) ;
 app.use('/api/blog', blogRoutes) ;
 app.use('/api/user', userRoutes) ;
+app.use('/api/scrap', scrapRoutes) ;
+app.use('/api/reddit', redditRoutes) ;
+app.use('/api/twitter', twitterRoutes) ;
 
 app.use('/api/files', express.static('uploads'));
 

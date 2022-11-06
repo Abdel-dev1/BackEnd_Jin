@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
 dotenv.config({
-    path: './.env'
+    path: './.env.example'
 });
 
 process.on('uncaughtException', err => {
@@ -15,7 +15,7 @@ mongoose.connect(process.env.DATABASE, {
     useNewUrlParser: true,
     useFindAndModify: false,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
 });
 
 mongoose.connection.on('connected', () => {

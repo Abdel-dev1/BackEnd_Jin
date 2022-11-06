@@ -6,12 +6,16 @@ const uploadAvatar = require('../utils/uploadAvatar') ;
 
 router.post('/signUp', authController.signUp);
 router.post('/signIn', authController.signIn);
-router.post('/emailVerify', authController.emailVerify) ;
+router.post('/test', authController.test) ;
+router.post('/emailVerify/:verify_code', authController.emailVerify) ;
 router.post('/forgotCode', authController.forgotCode) ;
 router.post('/passwordChanged', authController.passwordChanged) ;
 
 router.post('/*' , passport.authenticate('jwt', { session: false }));
 router.post('/userProfile', authController.userProfile) ;
 router.post('/createProfile', uploadAvatar, authController.createProfile) ;
+
+
+
 
 module.exports = router;

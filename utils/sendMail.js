@@ -1,4 +1,39 @@
-const emailjs = require('emailjs-com') ;
+const nodemailer = require("nodemailer");
+
+let transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.AUTH_EMAIL,
+    pass: process.env.AUTH_PASS,
+  },
+});
+
+// Testing transporter
+transporter.verify((error, seccess) => {
+  if (error) {
+    console.log(error);
+  } else {
+    console.log("Ready for Emails");
+    console.log(seccess);
+  }
+});
+
+exports.sendEmailVerifyLink = async (link, receiver) => {
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: receiver,
+    subject: "JinCold: Email Verify",
+    html: `<p>Verifier ton email address email via le link suivant:</p>
+        <p>Ce link va <b>expirer dans 6 min</b>.</p>
+        <p>Press <a href=${link}>Here </a> to proceed</p>`,
+  };
+  transporter
+    .sendMail(mailOptions)
+    .then((res) => console.log("Sucess"))
+    .catch((err) => console.log(err));
+};
+
+/* const emailjs = require('emailjs-com') ;
 const axios = require('axios') ;
 
 emailjs.init(process.env.ADMIN_EMAIL);
@@ -46,4 +81,4 @@ exports.sendEmailVerifyLink = async (link, receiver) => {
         console.log(err) ;
         return false ;
     }
-}
+} */
