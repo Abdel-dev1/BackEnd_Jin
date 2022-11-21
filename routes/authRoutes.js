@@ -7,7 +7,7 @@ const uploadAvatar = require('../utils/uploadAvatar') ;
 router.post('/signUp', authController.signUp);
 router.post('/signIn', authController.signIn);
 router.post('/test', authController.test) ;
-router.post('/emailVerify/:verify_code', authController.emailVerify) ;
+router.get('/emailVerify/:verify_code', authController.emailVerify) ;
 router.post('/forgotCode', authController.forgotCode) ;
 router.post('/passwordChanged', authController.passwordChanged) ;
 

@@ -1,5 +1,8 @@
 const { default: axios } = require("axios");
 const FormData = require("form-data");
+const TokenReddit = require("../models/Reddit/tokenRedditModel");
+const AppError = require("../utils/appError");
+const User = require("../models/userModel");
 /**   Search for a specific word      **/
 exports.search = async (req, res, next) => {
   const q = req.body.q;
@@ -33,13 +36,24 @@ exports.searchSubReddit = async (req, res, next) => {
   res.status(200).json(result.data);
 };
 
+exports.OAuth2 = async (req, res, next) => {
+  const result = await axios.get(
+    `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_CLIENT_ID}&response_type=code&state=${process.env.REACT_APP_REDDIT_STATE}&redirect_uri=http://localhost:5050/api/reddit/token&duration=permanent&scope=identity privatemessages submit read`
+  );
+  res.send(result.data);
+};
+
 exports.reddittoken = async (req, res, next) => {
-  let url = req.url.split("?")[1].split("&");
-  const state = url[0].split("=")[1];
-  const code = url[1].split("=")[1];
+  console.log("Token Function");
+   let user = await User.findOne({
+    email: req.query.email,
+  });
+
+ if (!user) return next(new AppError(403, "fail", "user dosen't exist"));
+  
   const result = await axios.post(
     "https://www.reddit.com/api/v1/access_token",
-    `grant_type=authorization_code&code=${code}&redirect_uri=http://localhost:5050/api/reddit/token`,
+    `grant_type=authorization_code&code=${req.query.code}&redirect_uri=http://localhost:3000/callback`,
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -49,8 +63,21 @@ exports.reddittoken = async (req, res, next) => {
         password: process.env.REACT_APP_REDDIT_CLIENT_SECRET,
       },
     }
-  );
-  res.status(200).json(result.data);
+  ); 
+  console.log(result.data);
+  if (result.data.access_token !== "") {
+    
+    redditToken = TokenReddit.create({
+      email: req.query.email,
+      access_token: result.data.access_token,
+      refresh_token: result.data.refresh_token,
+    });
+    if (!redditToken) {
+      return next(new AppError(403, "fail", "Fail save Reddit Token"));
+    } else {
+      res.send({ Reddit_Access_Token: result.data.access_token });
+    }
+  } 
 };
 
 exports.redditRefresh_token = async (req, res, next) => {
@@ -125,8 +152,8 @@ async function filterChildren(element) {
       cmt.push(p);
     }
   } else if (element.kind === "more") {
-    element.data.children.map(async(i) => {
-      console.log(i)
+    element.data.children.map(async (i) => {
+      console.log(i);
       //const t=await commentInfo(i);
       //console.log(t.data.children[0].data.author)
     });
@@ -162,10 +189,13 @@ async function filterChildren(element) {
 
 // you may exced the number of request !
 async function commentInfo(props) {
-   const res=await axios.get(`https://oauth.reddit.com/api/info?id=t1_${props}`, {
-    headers: {
-      Authorization: "Bearer 685207795151-obn2-PMHn_MIO_W3DWbb1RRA80yt9w",
-    },
-  });
+  const res = await axios.get(
+    `https://oauth.reddit.com/api/info?id=t1_${props}`,
+    {
+      headers: {
+        Authorization: "Bearer 685207795151-obn2-PMHn_MIO_W3DWbb1RRA80yt9w",
+      },
+    }
+  );
   return res.data;
 }

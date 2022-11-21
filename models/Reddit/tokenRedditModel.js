@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
 
 const tokenRedditSchema = new mongoose.Schema({
-    user_id : {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : 'User'
+    email: {
+        type: String,
+        lowercase: true,
+        unique : true ,
+        required : true,
     },
     access_token: {
         type: String,
@@ -16,6 +18,6 @@ const tokenRedditSchema = new mongoose.Schema({
     
 }, { timestamps: true });
 
-const Blog = mongoose.model("TokenReddit", tokenRedditSchema);
+const TokenReddit = mongoose.model("TokenReddit", tokenRedditSchema);
 
 module.exports = TokenReddit;

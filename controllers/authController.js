@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const passportConfig = require("../config/passportConfig");
 const { sendEmailVerifyLink } = require("../utils/sendMail");
 const { v4: uuidv4 } = require("uuid");
+const TokenReddit = require("../models/Reddit/tokenRedditModel");
 
 const createPassword = async (password, callback) => {
   bcrypt.genSalt(10, function (err, salt) {
@@ -51,6 +52,12 @@ exports.signUp = async (req, res, next) => {
 
     if (user) return next(new AppError(403, "fail", "user already exist"));
 
+    let verify_code = uuidv4();
+    await sendEmailVerifyLink(
+      "http://localhost:5050/api/auth/emailVerify/" + verify_code,
+      email
+    );
+
     user = await User.create({
       email: email,
       first_name: first_name,
@@ -58,6 +65,7 @@ exports.signUp = async (req, res, next) => {
       company_name: company_name,
       is_email_verified: false,
       password: hash,
+      email_verify_code: verify_code,
     });
 
     if (!user) return next(new AppError(403, "fail", "user create failed."));
@@ -71,6 +79,7 @@ exports.signUp = async (req, res, next) => {
 };
 
 exports.signIn = async (req, res, next) => {
+  console.log("singIn")
   const { email, password } = req.body;
 
   let user = await User.findOne({
@@ -79,10 +88,12 @@ exports.signIn = async (req, res, next) => {
 
   if (!user) return next(new AppError(201, "unknown", "Unknown User"));
 
+  // compare password recieved from the user and one in the DB
+
   await comparePassword(password, user.password, next, async (isMatch) => {
     if (isMatch) {
       if (!user.is_email_verified) {
-        let verify_code = uuidv4();
+        /* let verify_code = uuidv4();
 
         user.email_verify_code = verify_code;
         await user.save();
@@ -91,22 +102,35 @@ exports.signIn = async (req, res, next) => {
           "http://localhost:3000/api/auth/emailVerify/" +
             verify_code,
           email
-        );
+        ); */
 
         return res.status(201).json({
           status: "email",
           message: "Email isn't verified",
-          code: verify_code,
         });
       }
-
-      await tokenForUser(user, next, async (token) => {
-        return res.status(200).json({
-          status: "success",
-          message: "login success.",
-          access_token: token,
+      let reddit_token=await TokenReddit.findOne({
+        email:email
+      })
+      if(!reddit_token) {
+        
+        await tokenForUser(user, next, async (token) => {
+          return res.status(200).json({
+            status: "success",
+            message: "login success.",
+            access_token: token,
+          });
         });
-      });
+      } else{
+        await tokenForUser(user, next, async (token) => {
+          return res.status(200).json({
+            status: "success",
+            message: "login success.",
+            access_token: token,
+            reddit_access_token:reddit_token.access_token,
+          });
+        });
+      }
     } else {
       return res.status(201).json({
         status: "match",
@@ -141,9 +165,9 @@ exports.createProfile = async (req, res, next) => {
 
 exports.emailVerify = async (req, res, next) => {
   try {
-    let  verify_code = req.params.verify_code;
-    
-     let user = await User.updateOne(
+    let verify_code = req.params.verify_code;
+
+    let user = await User.updateOne(
       { email_verify_code: verify_code },
       {
         is_email_verified: true,
@@ -153,10 +177,10 @@ exports.emailVerify = async (req, res, next) => {
     if (user) {
       return res.status(200).json("Email verified");
     }
-    return res.status(201).json("Email Not Verified"); 
+    return res.status(201).json("Email Not Verified");
   } catch (err) {
     return res.status(201).json("Email Not Verified");
-  }
+  } 
 };
 
 exports.forgotCode = async (req, res, next) => {
@@ -222,4 +246,3 @@ exports.test = async (req, res, next) => {
     console.log(err);
   }
 };
-
