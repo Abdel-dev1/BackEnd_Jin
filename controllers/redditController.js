@@ -3,6 +3,7 @@ const FormData = require("form-data");
 const TokenReddit = require("../models/Reddit/tokenRedditModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
+
 /**   Search for a specific word      **/
 exports.search = async (req, res, next) => {
   const q = req.body.q;
@@ -21,7 +22,7 @@ function filter(data) {
   return data.map((item) => `http://www.reddit.com${item.data.permalink}`);
 }
 
-/**   Search for a specific Subreddit      **/
+/**   Search for a specific word in a Subreddit      **/
 exports.searchSubReddit = async (req, res, next) => {
   const q = req.body.q;
   const limit = req.body.limit;
@@ -36,6 +37,7 @@ exports.searchSubReddit = async (req, res, next) => {
   res.status(200).json(result.data);
 };
 
+/**   Integration OAuth2      **/
 exports.OAuth2 = async (req, res, next) => {
   const result = await axios.get(
     `https://www.reddit.com/api/v1/authorize?client_id=${process.env.REACT_APP_REDDIT_CLIENT_ID}&response_type=code&state=${process.env.REACT_APP_REDDIT_STATE}&redirect_uri=http://localhost:5050/api/reddit/token&duration=permanent&scope=identity privatemessages submit read`
@@ -79,7 +81,7 @@ exports.reddittoken = async (req, res, next) => {
     }
   } 
 };
-
+/**   Refresh Token      **/
 exports.redditRefresh_token = async (req, res, next) => {
   const result = await axios.post(
     "https://www.reddit.com/api/v1/access_token",
@@ -97,7 +99,7 @@ exports.redditRefresh_token = async (req, res, next) => {
   res.status(200).json(result.data);
 };
 
-// for sending private message
+/**   for sending private message      **/
 exports.DM = async (req, res, next) => {
   const subject = req.body.subject;
   const to = req.body.to;

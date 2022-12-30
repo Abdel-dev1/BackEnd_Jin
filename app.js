@@ -6,7 +6,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cors = require('cors');
 const bodyParser = require('body-parser') ;
-const xhr = require("xhr");
+
 
 const passport = require('passport') ;
 const passportStrategy = require('./utils/passportStrategy') ;
