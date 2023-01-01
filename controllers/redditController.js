@@ -4,6 +4,13 @@ const TokenReddit = require("../models/Reddit/tokenRedditModel");
 const AppError = require("../utils/appError");
 const User = require("../models/userModel");
 
+exports.test = async (req, res, next) => {
+
+  res.status(200).json({
+    status: "success",
+    message: "Test was successfull",
+  });
+};
 /**   Search for a specific word      **/
 exports.search = async (req, res, next) => {
   const q = req.body.q;
